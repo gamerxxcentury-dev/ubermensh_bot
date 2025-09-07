@@ -190,7 +190,7 @@
                     goal.completed = !goal.completed;
                     if (goal.completed && tg) {
                         tg.showPopup({
-                            title: '🎉 Поздравляем!',
+                            title: '🎉 Поздравляем!',            
                             message: 'Вы выполнили цель: ' + goal.title
                         });
                     }
