@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мое саморазвитие</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .goal-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .goal-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        button {
+            background: #6e8efb;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-right: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .form-add {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .btn-delete {
+            background: #ff6b6b;
+        }
+        
+        .btn-complete {
+            background: #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Мое Саморазвитие</h1>
+            <p>Достигайте цели прямо в Telegram!</p>
+        </div>
+        
+        <div class="form-add">
+            <input type="text" id="goalTitle" placeholder="Новая цель (например: Изучить JavaScript)">
+            <textarea id="goalDescription" placeholder="Описание цели" rows="2"></textarea>
+            <button id="addGoal">➕ Добавить цель</button>
+        </div>
+        
+        <div id="goalsList">
+            <!-- Цели будут появляться здесь -->
+        </div>
+    </div>
+
+    <script>
+        // Проверяем, открыто ли в Telegram
+        let tg;
+        if (window.Telegram && window.Telegram.WebApp) {
+            tg = window.Telegram.WebApp;
+            tg.expand();
+            tg.enableClosingConfirmation();
+            tg.MainButton.setText('Закрыть').show().onClick(function() {
+                tg.close();
+            });
+        }
+        
+        // Данные приложения
+        let goals = JSON.parse(localStorage.getItem('tg_goals')) || [];
+        
+        // Загрузка приложения
+        document.addEventListener('DOMContentLoaded', function() {
+            renderGoals();
+            
+            document.getElementById('addGoal').addEventListener('click', function() {
+                const title = document.getElementById('goalTitle').value.trim();
+                const description = document.getElementById('goalDescription').value.trim();
+                
+                if (title) {
+                    const newGoal = {
+                        id: Date.now(),
+                        title: title,
+                        description: description,
+                        completed: false,
+                        createdAt: new Date().toLocaleDateString('ru-RU')
+                    };
+                    
+                    goals.push(newGoal);
+                    localStorage.setItem('tg_goals', JSON.stringify(goals));
+                    renderGoals();
+                    
+                    // Очищаем поля
+                    document.getElementById('goalTitle').value = '';
+                    document.getElementById('goalDescription').value = '';
+                    
+                    // Уведомление
+                    if (tg) {
+                        tg.showPopup({
+                            title: '✅ Цель добавлена!',
+                            message: 'Теперь вы можете отслеживать свой прогресс'
+                        });
+                    } else {
+                        alert('Цель добавлена: ' + title);
+                    }
+                }
+            });
+        });
+        
+        // Отображение целей
+        function renderGoals() {
+            const goalsList = document.getElementById('goalsList');
+            goalsList.innerHTML = '';
+            
+            if (goals.length === 0) {
+                goalsList.innerHTML = '<div class="goal-card" style="text-align: center; color: #666;">🎯 У вас пока нет целей. Добавьте первую!</div>';
+                return;
+            }
+            
+            goals.forEach(goal => {
+                const goalElement = document.createElement('div');
+                goalElement.className = 'goal-card';
+                goalElement.innerHTML = `
+                    <div class="goal-title">${goal.completed ? '✅ ' : '📌 '}${goal.title}</div>
+                    <div>${goal.description || ''}</div>
+                    <div style="margin-top: 15px;">
+                        <button class="btn-complete" onclick="toggleGoal(${goal.id})">
+                            ${goal.completed ? '↩️ Возобновить' : '✅ Выполнить'}
+                        </button>
+                        <button class="btn-delete" onclick="deleteGoal(${goal.id})">🗑️ Удалить</button>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 12px; color: #888;">
+                        Добавлено: ${goal.createdAt}
+                    </div>
+                `;
+                
+                goalsList.appendChild(goalElement);
+            });
+        }
+        
+        // Функции для кнопок
+        window.toggleGoal = function(id) {
+            goals = goals.map(goal => {
+                if (goal.id === id) {
+                    goal.completed = !goal.completed;
+                    if (goal.completed && tg) {
+                        tg.showPopup({
+                            title: '🎉 Поздравляем!',
+                            message: 'Вы выполнили цель: ' + goal.title
+                        });
+                    }
+                }
+                return goal;
+            });
+            
+            localStorage.setItem('tg_goals', JSON.stringify(goals));
+            renderGoals();
+        };
+        
+        window.deleteGoal = function(id) {
+            if (confirm('Удалить эту цель?')) {
+                goals = goals.filter(goal => goal.id !== id);
+                localStorage.setItem('tg_goals', JSON.stringify(goals));
+                renderGoals();
+            }
+        };
+    </script>
+</body>
+</html>
