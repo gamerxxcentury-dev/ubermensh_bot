@@ -12,4 +12,4 @@ Telegram Mini App для отслеживания целей саморазви�
 ## Ссылки
 
 - [Открыть в Telegram]()
-- [Веб-версия](https://ВАШ_ЛОГИН.github.io/self-development-app/)
+- [Веб-версия](https://gamerxxcentury.github.io/self-development-app/)
